@@ -905,7 +905,6 @@ function! s:LoadUserTypeDefs(...) abort
         let type = a:1
 
         call s:debug("Initializing user type '" . type . "'")
-
         let defdict = {}
         let defdict[type] = g:tagbar_type_{type}
     else
@@ -2353,6 +2352,10 @@ endfunction
 " s:ExecuteCtagsOnFile() {{{2
 function! s:ExecuteCtagsOnFile(fname, realfname, typeinfo) abort
     call s:debug('ExecuteCtagsOnFile called [' . a:fname . ']')
+
+    if has_key(a:typeinfo, 'ctagsbin') && empty(a:typeinfo.ctagsbin)
+        return ''
+    endif
 
     if has_key(a:typeinfo, 'ctagsargs') && type(a:typeinfo.ctagsargs) == type('')
         " if ctagsargs is a string, prepend and append space separators
@@ -4128,14 +4131,16 @@ function! s:IsValidFile(fname, ftype) abort
     endif
 
     if !has_key(s:known_types, a:ftype)
-        if exists('g:tagbar_type_' . a:ftype)
-            " Filetype definition must have been specified in an 'ftplugin'
-            " file, so load it now
-            call s:LoadUserTypeDefs(a:ftype)
-        else
+        if !exists('g:tagbar_type_' . a:ftype)
             call s:debug('Unsupported filetype: ' . a:ftype)
-            return 0
+            let g:tagbar_type_{a:ftype} = {
+                        \ 'ctagstype': a:ftype,
+                        \ 'ctagsbin' : '',
+                        \ 'kinds' : []
+                        \ }
         endif
+
+        call s:LoadUserTypeDefs(a:ftype)
     endif
 
     return 1
