@@ -4104,19 +4104,24 @@ endfunction
 function! s:IsValidFile(fname, ftype) abort
     call s:debug('Checking if file is valid [' . a:fname . ']')
 
+    if &buftype != ''
+        call s:debug('&buftype is not normal')
+        return 0
+    endif
+
     if a:fname == '' || a:ftype == ''
         call s:debug('Empty filename or type')
-        return 0
+        " return 0
     endif
 
     if !filereadable(a:fname) && getbufvar(a:fname, 'netrw_tmpfile') == ''
         call s:debug('File not readable')
-        return 0
+        " return 0
     endif
 
     if getbufvar(a:fname, 'tagbar_ignore') == 1
         call s:debug('File is marked as ignored')
-        return 0
+        " return 0
     endif
 
     let winnr = bufwinnr(a:fname)
